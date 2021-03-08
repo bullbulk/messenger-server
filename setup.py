@@ -1,5 +1,6 @@
+import os
+
 from setuptools import setup
-import sqlite3
 
 setup(
     name='messenger-server',
@@ -11,3 +12,5 @@ setup(
     author_email='grur.ura@mail.ru',
     description='Server part of the Messenger'
 )
+
+os.mkdir('db')

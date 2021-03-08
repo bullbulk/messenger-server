@@ -1,7 +1,7 @@
 import datetime
 
 import sqlalchemy
-from sqlalchemy import Column
+from sqlalchemy import Column, DateTime, String
 
 from .db_session import SqlAlchemyBase
 
@@ -11,7 +11,5 @@ class Dialog(SqlAlchemyBase):
 
     id = Column(sqlalchemy.Integer,
                 primary_key=True, autoincrement=True)
-    first_member_id = Column(sqlalchemy.Integer)
-    second_member_id = Column(sqlalchemy.Integer)
-    hashed_password = Column(sqlalchemy.String)
-    created_date = Column(sqlalchemy.DateTime, default=datetime.datetime.now)
+    members_id = Column(String)
+    created_date = Column(DateTime, default=datetime.datetime.now)
