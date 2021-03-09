@@ -108,7 +108,7 @@ def send_message():
 
     is_token_valid = users_pool.is_valid_access_token(token)
     if not is_token_valid:
-        return INVALID_TOKEN
+        return INVALID_ACCESS_TOKEN
     return SUCCESS
 
 
@@ -128,6 +128,15 @@ def get_access_token():
     fingerprint = args.get('fingerprint')
 
     db_sess = db_session.create_session()
-    session = db_sess.query(Session).filter(Session.fingerprint == fingerprint)
+    query = db_sess.query(Session).filter(Session.fingerprint == fingerprint)
 
+    if not query.all():
+        return
+    session = query.first()
     if not users_pool.is_valid_refresh_token(session.fingerprint):
+        return INVALID_REFRESH_TOKEN
+
+    token = users_pool.create_access_token(fingerprint)
+    resp = SUCCESS.copy()
+    resp['access_token'] = token
+    return resp
