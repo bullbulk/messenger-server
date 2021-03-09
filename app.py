@@ -52,6 +52,7 @@ def register_user():
     user = users.User()
 
     if not match_required_params(args, ['nickname', 'email', 'password']):
+        print(args)
         return NOT_ENOUGH_ARGS.json()
     user.nickname = args.get('nickname')
     user.email = args.get('email')
@@ -88,7 +89,7 @@ def authenticate():
 
     if is_matched_password:
         resp = SUCCESS.copy()
-        session = users_pool.create_new_session(user.id, fingerprint)
+        session = users_pool.get_session(user.id, fingerprint)
         resp['access_token'] = session.access_token
         resp['refresh_token'] = session.refresh_token
     else:
@@ -108,13 +109,13 @@ def send_message():
 
     is_token_valid = users_pool.is_valid_access_token(token)
     if not is_token_valid:
-        return INVALID_ACCESS_TOKEN
-    return SUCCESS
+        return INVALID_ACCESS_TOKEN.json()
+    return SUCCESS.json()
 
 
 @app.route('/get_tokens')  # FOR DEBUG
 def get_tokens():
-    return jsonify([users_pool.access_tokens, users_pool.token_pool.all_tokens, users_pool.token_pool.expired_tokens,
+    return jsonify([users_pool.access_tokens, users_pool.token_pool.valid_tokens,
                     users_pool.token_pool.tokens_expire_date])
 
 
@@ -122,21 +123,22 @@ def get_tokens():
 def get_access_token():
     args = request.args
 
-    if not match_required_params(list(args.keys()), ['fingerprint']):
+    if not match_required_params(list(args.keys()), ['fingerprint', 'refresh_token']):
         return NOT_ENOUGH_ARGS.json()
 
     fingerprint = args.get('fingerprint')
+    refresh_token = args.get('refresh_token')
 
     db_sess = db_session.create_session()
-    query = db_sess.query(Session).filter(Session.fingerprint == fingerprint)
+    query = db_sess.query(Session).filter(Session.fingerprint == fingerprint, Session.refresh_token == refresh_token)
 
     if not query.all():
-        return
+        return INVALID_REFRESH_TOKEN.json()
     session = query.first()
-    if not users_pool.is_valid_refresh_token(session.fingerprint):
-        return INVALID_REFRESH_TOKEN
+    if not users_pool.is_valid_refresh_token(session.refresh_token):
+        return INVALID_REFRESH_TOKEN.json()
 
     token = users_pool.create_access_token(fingerprint)
     resp = SUCCESS.copy()
     resp['access_token'] = token
-    return resp
+    return resp.json()

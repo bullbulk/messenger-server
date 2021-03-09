@@ -38,8 +38,10 @@ class AccessTokenPool:
         return False
 
     def remove_token(self, token):
-        self.valid_tokens.remove(token)
-        self.tokens_expire_date.pop(token)
+        if token in self.valid_tokens:
+            self.valid_tokens.remove(token)
+        if token in self.tokens_expire_date.keys():
+            self.tokens_expire_date.pop(token)
 
 
 class UsersPool:
@@ -59,12 +61,12 @@ class UsersPool:
         session.fingerprint = fingerprint
         session.refresh_token = _create_token()
         session.expires_at = dt.datetime.now() + dt.timedelta(seconds=config.refresh_token_expire_sec)
+        session.user_id = user_id
 
         db_sess = db_session.create_session()
         db_sess.add(session)
         db_sess.commit()
 
-        session.access_token = self.create_access_token(user_id)
         return session
 
     def is_valid_access_token(self, token):
@@ -77,3 +79,17 @@ class UsersPool:
         if dt.datetime.now() > session.expires_at:
             return False
         return True
+
+    def get_session(self, user_id, fingerprint):
+        db_sess = db_session.create_session()
+        q = db_sess.query(Session)
+        q = q.filter(Session.user_id == user_id, Session.fingerprint == fingerprint,
+                     dt.datetime.now() < Session.expires_at)
+        if q.all():
+            session = q.first()
+            session.access_token = self.create_access_token(fingerprint)
+            return q.first()
+
+        session = self.create_new_session(user_id, fingerprint)
+        session.access_token = self.create_access_token(fingerprint)
+        return session
