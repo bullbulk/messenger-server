@@ -1,36 +1,36 @@
-import secrets
 import datetime as dt
+import secrets
 
 import config
+from data import db_session
+from data.sessions import Session
 
 
-def create_unique_token(tokens):
-    while (token := create_token()) in tokens:
+def _create_unique_token(tokens):
+    while (token := _create_token()) in tokens:
         pass
     else:
         return token
 
 
-def create_token():
+def _create_token():
     return secrets.token_hex(config.token_length)
 
 
-class TokenPool:
+class AccessTokenPool:
     valid_tokens = []
     tokens_expire_date = {}
-    expired_tokens = []
 
     def create_new_token(self):
-        token = create_unique_token(self.valid_tokens)
+        token = _create_unique_token(self.valid_tokens)
         self.valid_tokens.append(token)
         date = dt.datetime.now()
-        expire_date = date + dt.timedelta(0, config.token_expire_sec)
+        expire_date = date + dt.timedelta(0, config.access_token_expire_sec)
         self.tokens_expire_date[token] = expire_date
-        print(token)
         return token
 
-    def check_expired(self, token):
-        if token in self.expired_tokens or token not in self.valid_tokens:
+    def is_expired(self, token):
+        if token not in self.valid_tokens:
             return True
         if dt.datetime.now() > self.tokens_expire_date[token]:
             self.remove_token(token)
@@ -40,20 +40,40 @@ class TokenPool:
     def remove_token(self, token):
         self.valid_tokens.remove(token)
         self.tokens_expire_date.pop(token)
-        self.expired_tokens.append(token)
 
 
 class UsersPool:
-    token_pool = TokenPool()
-    authorized_users = {}
+    token_pool = AccessTokenPool()
+    access_tokens = {}
 
-    def create_new_session(self, user_id: int):
-        if token := self.authorized_users.get(user_id):
+    def create_access_token(self, fingerprint):
+        if token := self.access_tokens.get(fingerprint):
             self.token_pool.remove_token(token)
 
         token = self.token_pool.create_new_token()
-        self.authorized_users[user_id] = token
+        self.access_tokens[fingerprint] = token
         return token
 
-    def check_token(self, token):
-        return self.token_pool.check_expired(token)
+    def create_new_session(self, user_id: int, fingerprint):
+        session = Session()
+        session.fingerprint = fingerprint
+        session.refresh_token = _create_token()
+        session.expires_at = dt.datetime.now() + dt.timedelta(seconds=config.refresh_token_expire_sec)
+
+        db_sess = db_session.create_session()
+        db_sess.add(session)
+        db_sess.commit()
+
+        session.access_token = self.create_access_token(user_id)
+        return session
+
+    def is_valid_access_token(self, token):
+        return not self.token_pool.is_expired(token)
+
+    @classmethod
+    def is_valid_refresh_token(cls, token):
+        db_sess = db_session.create_session()
+        session = db_sess.query(Session).filter(Session.refresh_token == token).first()
+        if dt.datetime.now() > session.expires_at:
+            return False
+        return True

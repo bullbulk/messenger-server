@@ -9,6 +9,7 @@ import utils
 from data import db_session, users
 from data import dialogs
 from data.constants import *
+from data.sessions import Session
 from utils import match_required_params
 
 app = Flask(__name__)
@@ -72,10 +73,11 @@ def register_user():
 def authenticate():
     args = request.args
 
-    if not match_required_params(args, ['email', 'password']):
+    if not match_required_params(args, ['email', 'password', 'fingerprint']):
         return NOT_ENOUGH_ARGS.json()
     email = args.get('email')
     password = args.get('password')
+    fingerprint = args.get('fingerprint')
 
     session = db_session.create_session()
     query = session.query(users.User).filter(users.User.email == email)
@@ -86,8 +88,9 @@ def authenticate():
 
     if is_matched_password:
         resp = SUCCESS.copy()
-        token = users_pool.create_new_session(user.id)
-        resp['token'] = token
+        session = users_pool.create_new_session(user.id, fingerprint)
+        resp['access_token'] = session.access_token
+        resp['refresh_token'] = session.refresh_token
     else:
         resp = UNAUTHORIZED
     return resp.json()
@@ -98,19 +101,33 @@ def send_message():
     args = request.args
 
     if not match_required_params(list(args.keys()), ['text', 'token', 'addressee_id']):
-        print(args)
         return NOT_ENOUGH_ARGS.json()
     text = args.get('text')
     token = args.get('token')
     addressee_id = args.get('addressee_id')
 
-    is_token_valid = users_pool.check_token(token)
+    is_token_valid = users_pool.is_valid_access_token(token)
     if not is_token_valid:
         return INVALID_TOKEN
     return SUCCESS
 
 
-@app.route('/get_tokens')
+@app.route('/get_tokens')  # FOR DEBUG
 def get_tokens():
-    return jsonify([users_pool.authorized_users, users_pool.token_pool.all_tokens, users_pool.token_pool.expired_tokens,
+    return jsonify([users_pool.access_tokens, users_pool.token_pool.all_tokens, users_pool.token_pool.expired_tokens,
                     users_pool.token_pool.tokens_expire_date])
+
+
+@app.route('/get_access_token')
+def get_access_token():
+    args = request.args
+
+    if not match_required_params(list(args.keys()), ['fingerprint']):
+        return NOT_ENOUGH_ARGS.json()
+
+    fingerprint = args.get('fingerprint')
+
+    db_sess = db_session.create_session()
+    session = db_sess.query(Session).filter(Session.fingerprint == fingerprint)
+
+    if not users_pool.is_valid_refresh_token(session.fingerprint):
