@@ -3,7 +3,6 @@ import bcrypt
 
 def encrypt_password(pwd: str) -> str:
     hashed = bcrypt.hashpw(pwd.encode('utf-8'), bcrypt.gensalt())
-    print(hashed)
     return hashed.decode('utf-8')
 
 

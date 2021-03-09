@@ -1,5 +1,4 @@
 import datetime
-from typing import List
 
 from sqlalchemy import Column, String, Integer, DateTime
 

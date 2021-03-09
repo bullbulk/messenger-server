@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='messenger-server',
-    version='0.1',
+    version='0.1b',
     packages=[''],
     url='https://github.com/bullbulk/messenger-server',
     license='',
