@@ -20,7 +20,7 @@ users_pool = utils.UsersPool()
 @app.route('/')
 @app.route('/index')
 def index():
-    return 404
+    return 'There is no index page'
 
 
 @app.route('/create_dialog', methods=['POST'])
