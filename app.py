@@ -30,7 +30,7 @@ def create_dialog():
 
     if not match_required_params(args, ['ids']):
         return NOT_ENOUGH_ARGS.json()
-    ids: List = args.getlist('ids')
+    ids: List = args.getlist('ids')[:2]
 
     ids = sorted(list(map(int, ids)))
     if session.query(dialogs.Dialog).filter(dialogs.Dialog.members_id == json.dumps(ids)).all():
@@ -56,7 +56,8 @@ def register_user():
         return NOT_ENOUGH_ARGS.json()
     user.nickname = args.get('nickname')
     user.email = args.get('email')
-    user.hashed_password = utils.encrypt_password(args.get('password'))
+    # user.hashed_password = utils.encrypt_password(args.get('password'))
+    user.hashed_password = args.get('password')
 
     if session.query(users.User).filter(
             sqlalchemy.or_(users.User.email == args.get('email'),
@@ -85,7 +86,7 @@ def authenticate():
     if not query.all():
         return NOT_FOUND.json()
     user = query.first()
-    is_matched_password = utils.match_password(password, user.hashed_password)
+    is_matched_password = password == user.hashed_password
 
     if is_matched_password:
         resp = SUCCESS.copy()
