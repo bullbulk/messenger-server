@@ -3,7 +3,7 @@ import secrets
 
 import config
 from data import db_session
-from data.sessions import Session
+from data.models.sessions import Session
 
 
 def _create_unique_token(tokens):

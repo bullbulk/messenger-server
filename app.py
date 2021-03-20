@@ -5,16 +5,15 @@ from typing import List
 import sqlalchemy
 from flask import Flask, request, jsonify
 
-import utils
-from data import db_session, users
-from data import dialogs
-from data.constants import *
-from data.sessions import Session
-from utils import match_required_params
+from .data import db_session
+from .data.models import dialogs, users
+from .data.constants import *
+from .data.models.sessions import Session
+from .utils import match_required_params, UsersPool
 
 app = Flask(__name__)
 
-users_pool = utils.UsersPool()
+users_pool = UsersPool()
 
 
 @app.route('/')

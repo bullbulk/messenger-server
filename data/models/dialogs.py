@@ -3,7 +3,7 @@ import datetime
 import sqlalchemy
 from sqlalchemy import Column, DateTime, String
 
-from .db_session import SqlAlchemyBase
+from data.db_session import SqlAlchemyBase
 
 
 class Dialog(SqlAlchemyBase):

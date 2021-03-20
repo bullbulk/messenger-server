@@ -2,7 +2,7 @@ from datetime import datetime
 
 from sqlalchemy import Column, orm, Integer, ForeignKey, Boolean, String, DateTime
 
-from .db_session import SqlAlchemyBase
+from data.db_session import SqlAlchemyBase
 
 
 class Message(SqlAlchemyBase):
