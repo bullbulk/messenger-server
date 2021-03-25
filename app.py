@@ -5,11 +5,11 @@ from typing import List
 import sqlalchemy
 from flask import Flask, request, jsonify
 
-from .data import db_session
-from .data.models import dialogs, users
-from .data.constants import *
-from .data.models.sessions import Session
-from .utils import match_required_params, UsersPool
+from data import db_session
+from data.constants import *
+from data.models import dialogs, users
+from data.models.sessions import Session
+from utils import match_required_params, UsersPool
 
 app = Flask(__name__)
 
