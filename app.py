@@ -58,16 +58,14 @@ def register_user():
     # user.hashed_password = utils.encrypt_password(args.get('password'))
     user.hashed_password = args.get('password')
 
-    if session.query(users.User).filter(
-            sqlalchemy.or_(users.User.email == args.get('email'))).all():
+    if session.query(users.User).filter(users.User.email == args.get('email')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'email'
-        return ITEM_ALREADY_EXISTS.json()
-    if session.query(users.User).filter(
-            sqlalchemy.or_(users.User.nickname == args.get('nickname'))).all():
+        return res.json()
+    if session.query(users.User).filter(users.User.nickname == args.get('nickname')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'nickname'
-        return ITEM_ALREADY_EXISTS.json()
+        return res.json()
 
     user.created_date = datetime.now()
 
