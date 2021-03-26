@@ -51,7 +51,6 @@ def register_user():
     user = users.User()
 
     if not match_required_params(args, ['nickname', 'email', 'password']):
-        print(args)
         return NOT_ENOUGH_ARGS.json()
     user.nickname = args.get('nickname')
     user.email = args.get('email')
