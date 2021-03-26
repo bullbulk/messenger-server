@@ -96,6 +96,7 @@ def authenticate():
         session = users_pool.get_session(user.id, fingerprint)
         resp['access_token'] = session.access_token
         resp['refresh_token'] = session.refresh_token
+        resp['refresh_expires_at'] = session.expires_at.timestamp()
     else:
         resp = UNAUTHORIZED
     return resp.json()
