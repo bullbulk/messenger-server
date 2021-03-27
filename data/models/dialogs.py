@@ -6,7 +6,7 @@ from sqlalchemy import Column, DateTime, String
 from data.db_session import SqlAlchemyBase
 
 
-class Dialog(SqlAlchemyBase):
+class DialogModel(SqlAlchemyBase):
     __tablename__ = 'dialogs'
 
     id = Column(sqlalchemy.Integer,

@@ -2,18 +2,16 @@ import json
 from datetime import datetime
 from typing import List
 
-import sqlalchemy
-from flask import Flask, request, jsonify
+from flask import Flask, request
 
 from data import db_session
 from data.constants import *
 from data.models import dialogs, users
-from data.models.sessions import Session
-from utils import match_required_params, UsersPool
+from utils import match_required_params, SessionPool
 
 app = Flask(__name__)
 
-users_pool = UsersPool()
+session_pool = SessionPool()
 
 
 @app.route('/')
@@ -32,10 +30,10 @@ def create_dialog():
     ids: List = args.getlist('ids')[:2]
 
     ids = sorted(list(map(int, ids)))
-    if session.query(dialogs.Dialog).filter(dialogs.Dialog.members_id == json.dumps(ids)).all():
+    if session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids)).all():
         return ITEM_ALREADY_EXISTS.json()
 
-    dialog = dialogs.Dialog()
+    dialog = dialogs.DialogModel()
     dialog.members_id = json.dumps(ids)
 
     session.add(dialog)
@@ -43,12 +41,12 @@ def create_dialog():
     return SUCCESS.json()
 
 
-@app.route('/register_user', methods=['POST'])
+@app.route('/register', methods=['POST'])
 def register_user():
     session = db_session.create_session()
 
     args = request.args
-    user = users.User()
+    user = users.UserModel()
 
     if not match_required_params(args, ['nickname', 'email', 'password']):
         return NOT_ENOUGH_ARGS.json()
@@ -57,11 +55,11 @@ def register_user():
     # user.hashed_password = utils.encrypt_password(args.get('password'))
     user.hashed_password = args.get('password')
 
-    if session.query(users.User).filter(users.User.email == args.get('email')).all():
+    if session.query(users.UserModel).filter(users.UserModel.email == args.get('email')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'email'
         return res.json()
-    if session.query(users.User).filter(users.User.nickname == args.get('nickname')).all():
+    if session.query(users.UserModel).filter(users.UserModel.nickname == args.get('nickname')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'nickname'
         return res.json()
@@ -73,8 +71,8 @@ def register_user():
     return SUCCESS.json()
 
 
-@app.route('/auth_user', methods=['GET'])
-def authenticate():
+@app.route('/login', methods=['GET'])
+def login():
     args = request.args
 
     if not match_required_params(args, ['email', 'password', 'fingerprint']):
@@ -84,7 +82,7 @@ def authenticate():
     fingerprint = args.get('fingerprint')
 
     session = db_session.create_session()
-    query = session.query(users.User).filter(users.User.email == email)
+    query = session.query(users.UserModel).filter(users.UserModel.email == email)
     if not query.all():
         return NOT_FOUND.json()
     user = query.first()
@@ -92,10 +90,9 @@ def authenticate():
 
     if is_matched_password:
         resp = SUCCESS.copy()
-        session = users_pool.get_session(user.id, fingerprint)
+        session = session_pool.create_new(user.id, fingerprint)
         resp['access_token'] = session.access_token
         resp['refresh_token'] = session.refresh_token
-        resp['refresh_expires_at'] = session.expires_at.timestamp()
     else:
         resp = UNAUTHORIZED
     return resp.json()
@@ -111,16 +108,10 @@ def send_message():
     token = args.get('token')
     addressee_id = args.get('addressee_id')
 
-    is_token_valid = users_pool.is_valid_access_token(token)
+    is_token_valid = session_pool.check_access_token(token)
     if not is_token_valid:
         return INVALID_ACCESS_TOKEN.json()
     return SUCCESS.json()
-
-
-@app.route('/get_tokens')  # FOR DEBUG
-def get_tokens():
-    return jsonify([users_pool.access_tokens, users_pool.token_pool.valid_tokens,
-                    users_pool.token_pool.tokens_expire_date])
 
 
 @app.route('/get_access_token')
@@ -134,15 +125,13 @@ def get_access_token():
     refresh_token = args.get('refresh_token')
 
     db_sess = db_session.create_session()
-    query = db_sess.query(Session).filter(Session.fingerprint == fingerprint, Session.refresh_token == refresh_token)
+    new_session = session_pool.update_session(refresh_token)
 
-    if not query.all():
+    if not new_session:
         return INVALID_REFRESH_TOKEN.json()
-    session = query.first()
-    if not users_pool.is_valid_refresh_token(session.refresh_token):
-        return INVALID_REFRESH_TOKEN.json()
+    print(session_pool.access_token_pool.valid_tokens)
 
-    token = users_pool.create_access_token(fingerprint)
     resp = SUCCESS.copy()
-    resp['access_token'] = token
+    resp['access_token'] = new_session.access_token
+    resp['refresh_token'] = new_session.refresh_token
     return resp.json()

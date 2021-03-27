@@ -5,7 +5,7 @@ from sqlalchemy import Column, orm, Integer, ForeignKey, Boolean, String, DateTi
 from data.db_session import SqlAlchemyBase
 
 
-class Message(SqlAlchemyBase):
+class MessageModel(SqlAlchemyBase):
     __tablename__ = 'messages'
 
     id = Column(Integer,
@@ -18,5 +18,5 @@ class Message(SqlAlchemyBase):
     is_deleted = Column(Boolean, default=False)
     created_date = Column(DateTime, default=datetime.now)
 
-    user = orm.relation('User', foreign_keys=[addressee_id])
+    user = orm.relation('UserModel', foreign_keys=[addressee_id])
     dialog = orm.relation('Dialog', foreign_keys=[dialog_id])

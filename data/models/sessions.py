@@ -5,7 +5,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from data.db_session import SqlAlchemyBase
 
 
-class Session(SqlAlchemyBase):
+class SessionModel(SqlAlchemyBase):
     __tablename__ = 'sessions'
 
     id = Column(Integer,

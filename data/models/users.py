@@ -5,7 +5,7 @@ from sqlalchemy import Column, String, Integer, DateTime
 from data.db_session import SqlAlchemyBase
 
 
-class User(SqlAlchemyBase):
+class UserModel(SqlAlchemyBase):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
