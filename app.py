@@ -141,10 +141,11 @@ def get_access_token():
     return resp.json()
 
 
-@socketio.on('register_callback')
+@socketio.on('connect', namespace='/register_callback')
 def callback():
     args = request.args
     user_id = args.get('user_id')
 
     socket_clients[user_id] = session.sid
     socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=session.sid)
+    print('registered')
