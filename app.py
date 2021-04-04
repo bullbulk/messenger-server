@@ -96,6 +96,7 @@ def login():
         session = session_pool.create_new(user.id, fingerprint)
         resp['access_token'] = session.access_token
         resp['refresh_token'] = session.refresh_token
+        resp['user_id'] = user.id
     else:
         resp = UNAUTHORIZED
     return resp.json()
