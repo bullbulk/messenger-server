@@ -2,7 +2,8 @@ import json
 from datetime import datetime
 from typing import List
 
-from flask import Flask, request
+from flask import Flask, request, session
+from flask_socketio import SocketIO
 
 from data import db_session
 from data.constants import *
@@ -10,8 +11,10 @@ from data.models import dialogs, users
 from utils import match_required_params, SessionPool
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 session_pool = SessionPool()
+socket_clients = {}
 
 
 @app.route('/')
@@ -135,3 +138,12 @@ def get_access_token():
     resp['access_token'] = new_session.access_token
     resp['refresh_token'] = new_session.refresh_token
     return resp.json()
+
+
+@socketio.on('register_callback')
+def callback():
+    args = request.args
+    user_id = args.get('user_id')
+
+    socket_clients[user_id] = session.sid
+    socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=session.sid)
