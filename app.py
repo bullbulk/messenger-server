@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import List
 
 from flask import Flask, request, session
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, emit
 
 from data import db_session
 from data.constants import *
@@ -141,7 +141,7 @@ def get_access_token():
     return resp.json()
 
 
-@socketio.on('connect', namespace='/register_callback')
+@socketio.on('message', namespace='/register_callback')
 def callback():
     args = request.args
     user_id = args.get('user_id')
@@ -149,3 +149,8 @@ def callback():
     socket_clients[user_id] = session.sid
     socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=session.sid)
     print('registered')
+
+
+@socketio.on('connect')
+def test_connect():
+    emit('after connect', {'data': 'Lets dance'})
