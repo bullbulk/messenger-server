@@ -5,8 +5,8 @@ from typing import List
 import eventlet
 
 eventlet.monkey_patch()
-from flask import Flask, request, session
-from flask_socketio import SocketIO, emit, send
+from flask import Flask, request
+from flask_socketio import SocketIO, emit
 
 from data import db_session
 from data.constants import *
@@ -146,7 +146,7 @@ def get_access_token():
 
 @socketio.on('register_callback')
 def callback(message):
-    print('aaaaaaa', file=open('log.log', 'w'))
+    print(message, file=open('log.log', 'w'))
     user_id = message['user_id']
 
     socket_clients[user_id] = request.sid
@@ -155,4 +155,4 @@ def callback(message):
 
 @socketio.on('connect')
 def test_connect():
-    emit('callback', {'data': 'Lets dance'})
+    emit('callback', {'data': 'Callback registered'})
