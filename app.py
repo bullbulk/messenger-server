@@ -6,7 +6,7 @@ import eventlet
 
 eventlet.monkey_patch()
 from flask import Flask, request, session
-from flask_socketio import SocketIO, emit
+from flask_socketio import SocketIO, emit, send
 
 from data import db_session
 from data.constants import *
@@ -146,11 +146,11 @@ def get_access_token():
 
 @socketio.on('register_callback')
 def callback(message):
-    print(message, file=open('log.log', 'w'))
+    print('aaaaaaa', file=open('log.log', 'w'))
     user_id = message['user_id']
 
-    socket_clients[user_id] = session.sid
-    socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=session.sid)
+    socket_clients[user_id] = request.sid
+    emit('status', {'data': 'has entered the room.'})
 
 
 @socketio.on('connect')
