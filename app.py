@@ -153,4 +153,5 @@ def callback():
 
 @socketio.on('connect')
 def test_connect():
+    print(2)
     emit('callback', {'data': 'Lets dance'})
