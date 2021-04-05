@@ -148,10 +148,10 @@ def callback():
 #
     # socket_clients[user_id] = session.sid
     socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'})
-    print('registered')
+    print('registered', file=open('log.log', 'w'))
 
 
 @socketio.on('connect')
 def test_connect():
-    print(2)
+    print('connected', file=open('log.log', 'w'))
     emit('callback', {'data': 'Lets dance'})
