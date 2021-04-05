@@ -4,9 +4,7 @@ from typing import List
 
 from flask import Flask, request, session
 from flask_socketio import SocketIO, emit
-import eventlet
 
-eventlet.monkey_patch()
 from data import db_session
 from data.constants import *
 from data.models import dialogs, users
@@ -143,7 +141,7 @@ def get_access_token():
     return resp.json()
 
 
-@socketio.on('message')
+@socketio.on('register', namespace='/callback')
 def callback():
     # args = request.args
     # user_id = args.get('user_id')
