@@ -3,15 +3,15 @@ from datetime import datetime
 from typing import List
 
 import eventlet
-
-eventlet.monkey_patch()
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
 
 from data import db_session
 from data.constants import *
-from data.models import dialogs, users
+from data.models import dialogs, users, messages
 from utils import match_required_params, SessionPool
+
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet')
@@ -58,7 +58,6 @@ def register_user():
         return NOT_ENOUGH_ARGS.json()
     user.nickname = args.get('nickname')
     user.email = args.get('email')
-    # user.hashed_password = utils.encrypt_password(args.get('password'))
     user.hashed_password = args.get('password')
 
     if session.query(users.UserModel).filter(users.UserModel.email == args.get('email')).all():
@@ -118,6 +117,24 @@ def send_message():
     is_token_valid = session_pool.check_access_token(token)
     if not is_token_valid:
         return INVALID_ACCESS_TOKEN.json()
+
+    message = messages.MessageModel()
+    message.text = text
+    message.addressee_id = addressee_id
+    message.author_id = session_pool.get_user_id(token)
+
+    session = db_session.create_session()
+    ids = sorted(list(map(int, [message.author_id, message.addressee_id])))
+    q = session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids))
+    if not q.all():
+        return NOT_FOUND.json()
+    dialog = q.first()
+
+    message.dialog_id = dialog.id
+
+    if addressee_id in socket_clients:
+        emit('new_message', {'data': {'dialog': dialog.id}}, room=socket_clients[addressee_id])
+
     return SUCCESS.json()
 
 
@@ -128,10 +145,8 @@ def get_access_token():
     if not match_required_params(list(args.keys()), ['fingerprint', 'refresh_token']):
         return NOT_ENOUGH_ARGS.json()
 
-    fingerprint = args.get('fingerprint')
     refresh_token = args.get('refresh_token')
 
-    db_sess = db_session.create_session()
     new_session = session_pool.update_session(refresh_token)
 
     if not new_session:
@@ -150,9 +165,4 @@ def callback(message):
     user_id = message['user_id']
 
     socket_clients[user_id] = request.sid
-    emit('status', {'data': 'has entered the room.'})
-
-
-@socketio.on('connect')
-def test_connect():
-    emit('callback', {'data': 'Callback registered'})
+    emit('status', {'data': 'success'}, room=request.sid)

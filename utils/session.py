@@ -118,6 +118,8 @@ class SessionPool:
         db_sess.commit()
         return new_session
 
-
     def check_access_token(self, token: str):
         return self.access_token_pool.is_valid(token)
+
+    def get_user_id(self, token):
+        return self.access_token_pool.get_token_key(token)
