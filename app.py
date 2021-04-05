@@ -2,6 +2,9 @@ import json
 from datetime import datetime
 from typing import List
 
+import eventlet
+
+eventlet.monkey_patch()
 from flask import Flask, request, session
 from flask_socketio import SocketIO, emit
 
@@ -11,7 +14,7 @@ from data.models import dialogs, users
 from utils import match_required_params, SessionPool
 
 app = Flask(__name__)
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet')
 
 session_pool = SessionPool()
 socket_clients = {}
