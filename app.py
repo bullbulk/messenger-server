@@ -144,7 +144,7 @@ def get_access_token():
     return resp.json()
 
 
-@socketio.on('register', namespace='/callback')
+@socketio.on('register_callback')
 def callback(message):
     print(message, file=open('log.log', 'w'))
     user_id = message['user_id']
