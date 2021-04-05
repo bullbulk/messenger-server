@@ -142,16 +142,14 @@ def get_access_token():
 
 
 @socketio.on('register', namespace='/callback')
-def callback():
-    # args = request.args
-    # user_id = args.get('user_id')
-#
-    # socket_clients[user_id] = session.sid
-    socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'})
-    print('registered', file=open('log.log', 'w'))
+def callback(message):
+    print(message, file=open('log.log', 'w'))
+    user_id = message['user_id']
+
+    socket_clients[user_id] = session.sid
+    socketio.emit('status', {'msg': session.get('name') + ' has entered the room.'}, room=session.sid)
 
 
 @socketio.on('connect')
 def test_connect():
-    print('connected', file=open('log.log', 'w'))
     emit('callback', {'data': 'Lets dance'})
