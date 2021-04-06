@@ -121,5 +121,5 @@ class SessionPool:
     def check_access_token(self, token: str):
         return self.access_token_pool.is_valid(token)
 
-    def get_user_id(self, token):
+    def get_user_fp(self, token):
         return self.access_token_pool.get_token_key(token)
