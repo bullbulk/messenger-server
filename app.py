@@ -17,7 +17,7 @@ app = Flask(__name__)
 socketio = SocketIO(app, async_mode='eventlet')
 
 session_pool = SessionPool()
-socket_clients = {}
+socketio_clients = {}
 
 
 @app.route('/')
@@ -140,9 +140,12 @@ def send_message():
 
     message.dialog_id = dialog.id
 
-    if addressee_id in socket_clients:
-        socket_clients[addressee_id].emit('new_message', {'data': {'dialog': dialog.id}})
+    if addressee_id in socketio_clients:
+        print(socketio_clients[addressee_id])
+        emit('new_message', {'data': 'message'}, room=socketio_clients[addressee_id], namespace='/')
+        emit('new_message', {'data': 'message'}, room=socketio_clients[author_id], namespace='/')
 
+    session.commit()
     return SUCCESS.json()
 
 
@@ -171,5 +174,5 @@ def get_access_token():
 def callback(message):
     user_id = message['user_id']
 
-    socket_clients[user_id] = request.namespace
+    socketio_clients[user_id] = request.sid
     emit('status', {'data': 'success'})
