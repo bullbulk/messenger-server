@@ -28,12 +28,12 @@ def index():
 
 @app.route('/create_dialog', methods=['POST'])
 def create_dialog():
-    args = request.json
+    data = request.json
     session = db_session.create_session()
 
-    if not match_required_params(args, ['ids']):
+    if not match_required_params(data, ['ids']):
         return NOT_ENOUGH_ARGS.json()
-    ids: List = args.get('ids')[:2]
+    ids: List = data.get('ids')[:2]
 
     ids = sorted(list(map(int, ids)))
     if session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids)).all():
@@ -51,20 +51,20 @@ def create_dialog():
 def register_user():
     session = db_session.create_session()
 
-    args = request.json
+    data = request.json
     user = users.UserModel()
 
-    if not match_required_params(args, ['nickname', 'email', 'password']):
+    if not match_required_params(data, ['nickname', 'email', 'password']):
         return NOT_ENOUGH_ARGS.json()
-    user.nickname = args.get('nickname')
-    user.email = args.get('email')
-    user.hashed_password = args.get('password')
+    user.nickname = data.get('nickname')
+    user.email = data.get('email')
+    user.hashed_password = data.get('password')
 
-    if session.query(users.UserModel).filter(users.UserModel.email == args.get('email')).all():
+    if session.query(users.UserModel).filter(users.UserModel.email == data.get('email')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'email'
         return res.json()
-    if session.query(users.UserModel).filter(users.UserModel.nickname == args.get('nickname')).all():
+    if session.query(users.UserModel).filter(users.UserModel.nickname == data.get('nickname')).all():
         res = ITEM_ALREADY_EXISTS.copy()
         res['reason'] = 'nickname'
         return res.json()
@@ -78,13 +78,13 @@ def register_user():
 
 @app.route('/login', methods=['GET'])
 def login():
-    args = request.json
+    data = request.json
 
-    if not match_required_params(args, ['email', 'password', 'fingerprint']):
+    if not match_required_params(data, ['email', 'password', 'fingerprint']):
         return NOT_ENOUGH_ARGS.json()
-    email = args.get('email')
-    password = args.get('password')
-    fingerprint = args.get('fingerprint')
+    email = data.get('email')
+    password = data.get('password')
+    fingerprint = data.get('fingerprint')
 
     session = db_session.create_session()
     query = session.query(users.UserModel).filter(users.UserModel.email == email)
@@ -106,13 +106,13 @@ def login():
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
-    args = request.json
+    data = request.json
 
-    if not match_required_params(list(args.keys()), ['text', 'token', 'addressee_id']):
+    if not match_required_params(list(data.keys()), ['text', 'token', 'addressee_id']):
         return NOT_ENOUGH_ARGS.json()
-    text = args.get('text')
-    token = args.get('token')
-    addressee_id = args.get('addressee_id')
+    text = data.get('text')
+    token = data.get('token')
+    addressee_id = data.get('addressee_id')
 
     is_token_valid = session_pool.check_access_token(token)
     if not is_token_valid:
@@ -140,12 +140,12 @@ def send_message():
 
 @app.route('/get_access_token')
 def get_access_token():
-    args = request.json
+    data = request.json
 
-    if not match_required_params(list(args.keys()), ['fingerprint', 'refresh_token']):
+    if not match_required_params(list(data.keys()), ['fingerprint', 'refresh_token']):
         return NOT_ENOUGH_ARGS.json()
 
-    refresh_token = args.get('refresh_token')
+    refresh_token = data.get('refresh_token')
 
     new_session = session_pool.update_session(refresh_token)
 
