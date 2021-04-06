@@ -141,7 +141,7 @@ def send_message():
     message.dialog_id = dialog.id
 
     if addressee_id in socket_clients:
-        emit('new_message', {'data': {'dialog': dialog.id}}, room=socket_clients[addressee_id])
+        socket_clients[addressee_id].emit('new_message', {'data': {'dialog': dialog.id}})
 
     return SUCCESS.json()
 
@@ -171,5 +171,5 @@ def get_access_token():
 def callback(message):
     user_id = message['user_id']
 
-    socket_clients[user_id] = request.sid
-    emit('status', {'data': 'success'}, room=request.sid)
+    socket_clients[user_id] = request.namespace
+    emit('status', {'data': 'success'})
