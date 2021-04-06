@@ -129,12 +129,13 @@ def send_message():
     message = messages.MessageModel()
     message.text = text
     message.addressee_id = addressee_id
-    message.author_id = session.query(sessions.SessionModel).filter(
-        sessions.SessionModel.fingerprint == session_pool.get_user_fp(access_token)).first().user_id
-
+    message.author_id = data.get('author_id')
     ids = sorted(list(map(int, [message.author_id, message.addressee_id])))
     q = session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids))
+    print(message.author_id, message.addressee_id)
+    print(session.query(users.UserModel).all())
     if not q.all():
+        print('dialog')
         return NOT_FOUND.json()
     dialog = q.first()
 
@@ -143,8 +144,8 @@ def send_message():
     if addressee_id in socketio_clients:
         print(socketio_clients[addressee_id])
         emit('new_message', {'data': 'message'}, room=socketio_clients[addressee_id], namespace='/')
-        emit('new_message', {'data': 'message'}, room=socketio_clients[author_id], namespace='/')
-
+    
+    session.add(message)
     session.commit()
     return SUCCESS.json()
 
@@ -153,7 +154,7 @@ def send_message():
 def get_access_token():
     data = request.json
 
-    if not match_required_params(list(data.keys()), ['fingerprint', 'refresh_token']):
+    if not match_required_params(list(data.keys()), ['refresh_token']):
         return NOT_ENOUGH_ARGS.json()
 
     refresh_token = data.get('refresh_token')

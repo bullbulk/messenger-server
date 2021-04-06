@@ -105,9 +105,11 @@ class SessionPool:
         q = db_sess.query(SessionModel)
         q = q.filter(SessionModel.refresh_token == refresh_token)
         if not q.all():
+            print(list(map(lambda x: x.refresh_token, db_sess.query(SessionModel).all())))
             return
         session = q.first()
         if Token(session.refresh_token, session.expires_at).is_expired():
+            print('expired')
             return
 
         db_sess.delete(session)

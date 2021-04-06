@@ -15,3 +15,6 @@ class UserModel(SqlAlchemyBase):
     modified_date = Column(DateTime,
                            default=datetime.datetime.now)
     created_date = Column(DateTime)
+    
+    def __repr__(self):
+        return f'{{{self.id} {self.nickname}}}'
