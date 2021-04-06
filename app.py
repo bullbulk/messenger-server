@@ -28,12 +28,12 @@ def index():
 
 @app.route('/create_dialog', methods=['POST'])
 def create_dialog():
-    args = request.args
+    args = request.json
     session = db_session.create_session()
 
     if not match_required_params(args, ['ids']):
         return NOT_ENOUGH_ARGS.json()
-    ids: List = args.getlist('ids')[:2]
+    ids: List = args.get('ids')[:2]
 
     ids = sorted(list(map(int, ids)))
     if session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids)).all():
@@ -51,7 +51,7 @@ def create_dialog():
 def register_user():
     session = db_session.create_session()
 
-    args = request.args
+    args = request.json
     user = users.UserModel()
 
     if not match_required_params(args, ['nickname', 'email', 'password']):
@@ -78,7 +78,7 @@ def register_user():
 
 @app.route('/login', methods=['GET'])
 def login():
-    args = request.args
+    args = request.json
 
     if not match_required_params(args, ['email', 'password', 'fingerprint']):
         return NOT_ENOUGH_ARGS.json()
@@ -106,7 +106,7 @@ def login():
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
-    args = request.args
+    args = request.json
 
     if not match_required_params(list(args.keys()), ['text', 'token', 'addressee_id']):
         return NOT_ENOUGH_ARGS.json()
@@ -140,7 +140,7 @@ def send_message():
 
 @app.route('/get_access_token')
 def get_access_token():
-    args = request.args
+    args = request.json
 
     if not match_required_params(list(args.keys()), ['fingerprint', 'refresh_token']):
         return NOT_ENOUGH_ARGS.json()
@@ -161,7 +161,6 @@ def get_access_token():
 
 @socketio.on('register_callback')
 def callback(message):
-    print(message, file=open('log.log', 'w'))
     user_id = message['user_id']
 
     socket_clients[user_id] = request.sid

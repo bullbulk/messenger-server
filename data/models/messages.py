@@ -19,4 +19,4 @@ class MessageModel(SqlAlchemyBase):
     created_date = Column(DateTime, default=datetime.now)
 
     user = orm.relation('UserModel', foreign_keys=[addressee_id])
-    dialog = orm.relation('Dialog', foreign_keys=[dialog_id])
+    dialog = orm.relation('DialogModel', foreign_keys=[dialog_id])
