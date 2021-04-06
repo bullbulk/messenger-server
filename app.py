@@ -31,8 +31,15 @@ def create_dialog():
     data = request.json
     session = db_session.create_session()
 
-    if not match_required_params(data, ['ids']):
+    if not match_required_params(data, ['ids', 'access_token']):
         return NOT_ENOUGH_ARGS.json()
+    access_token = data.get('access_token')
+    addressee_id = data.get('addressee_id')
+
+    is_token_valid = session_pool.check_access_token(access_token)
+    if not is_token_valid:
+        return INVALID_ACCESS_TOKEN.json()
+
     ids: List = data.get('ids')[:2]
 
     ids = sorted(list(map(int, ids)))
@@ -108,20 +115,20 @@ def login():
 def send_message():
     data = request.json
 
-    if not match_required_params(list(data.keys()), ['text', 'token', 'addressee_id']):
+    if not match_required_params(list(data.keys()), ['text', 'access_token', 'addressee_id']):
         return NOT_ENOUGH_ARGS.json()
     text = data.get('text')
-    token = data.get('token')
+    access_token = data.get('access_token')
     addressee_id = data.get('addressee_id')
 
-    is_token_valid = session_pool.check_access_token(token)
+    is_token_valid = session_pool.check_access_token(access_token)
     if not is_token_valid:
         return INVALID_ACCESS_TOKEN.json()
 
     message = messages.MessageModel()
     message.text = text
     message.addressee_id = addressee_id
-    message.author_id = session_pool.get_user_id(token)
+    message.author_id = session_pool.get_user_id(access_token)
 
     session = db_session.create_session()
     ids = sorted(list(map(int, [message.author_id, message.addressee_id])))
