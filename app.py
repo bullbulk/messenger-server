@@ -76,7 +76,7 @@ def register_user():
     return SUCCESS.json()
 
 
-@app.route('/login', methods=['GET'])
+@app.route('/login', methods=['POST'])
 def login():
     data = request.json
 
@@ -138,7 +138,7 @@ def send_message():
     return SUCCESS.json()
 
 
-@app.route('/get_access_token')
+@app.route('/get_access_token', methods=['POST'])
 def get_access_token():
     data = request.json
 
