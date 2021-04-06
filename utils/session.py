@@ -40,7 +40,7 @@ class AccessTokenPool:
         return token_data
 
     def get_token_key(self, token):
-        tokens = list(self.valid_tokens.values())
+        tokens = list(map(lambda x: x.token, self.valid_tokens.values()))
         if token not in tokens:
             return
         index = tokens.index(token)
