@@ -8,7 +8,7 @@ from flask_socketio import SocketIO, emit
 
 from data import db_session
 from data.constants import *
-from data.models import dialogs, users, messages, sessions
+from data.models import dialogs, users, messages
 from utils import match_required_params, SessionPool
 
 eventlet.monkey_patch()
@@ -132,17 +132,13 @@ def send_message():
     message.author_id = data.get('author_id')
     ids = sorted(list(map(int, [message.author_id, message.addressee_id])))
     q = session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids))
-    print(message.author_id, message.addressee_id)
-    print(session.query(users.UserModel).all())
     if not q.all():
-        print('dialog')
         return NOT_FOUND.json()
     dialog = q.first()
 
     message.dialog_id = dialog.id
 
     if addressee_id in socketio_clients:
-        print(socketio_clients[addressee_id])
         emit('new_message', {'data': 'message'}, room=socketio_clients[addressee_id], namespace='/')
     
     session.add(message)
@@ -163,7 +159,6 @@ def get_access_token():
 
     if not new_session:
         return INVALID_REFRESH_TOKEN.json()
-    print(session_pool.access_token_pool.valid_tokens)
 
     resp = SUCCESS.copy()
     resp['access_token'] = new_session.access_token

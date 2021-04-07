@@ -105,19 +105,15 @@ class SessionPool:
         q = db_sess.query(SessionModel)
         q = q.filter(SessionModel.refresh_token == refresh_token)
         if not q.all():
-            print(list(map(lambda x: x.refresh_token, db_sess.query(SessionModel).all())))
             return
         session = q.first()
         if Token(session.refresh_token, session.expires_at).is_expired():
-            print('expired')
             return
-
         db_sess.delete(session)
         db_sess.commit()
-        self.access_token_pool.remove_token_by_key(session.fingerprint)
         new_session = self.create_new(session.user_id, session.fingerprint)
         db_sess.object_session(new_session).add(new_session)
-        db_sess.commit()
+        db_sess.object_session(new_session).commit()
         return new_session
 
     def check_access_token(self, token: str):
