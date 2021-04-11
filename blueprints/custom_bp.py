@@ -23,4 +23,4 @@ class CustomBlueprint(Blueprint):
     @classmethod
     def set_properties(cls, **kwargs):
         for k, v in kwargs.items():
-            cls.__dict__[k] = v
+            setattr(cls, k, v)
