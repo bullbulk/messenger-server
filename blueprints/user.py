@@ -62,7 +62,7 @@ def login():
 
     if is_matched_password:
         resp = SUCCESS.copy()
-        session = session_pool.create_new(user.id, fingerprint)
+        session = bp.session_pool.create_new(user.id, fingerprint)
         resp['access_token'] = session.access_token
         resp['refresh_token'] = session.refresh_token
         resp['user_id'] = user.id
@@ -80,7 +80,7 @@ def get_access_token():
 
     refresh_token = data.get('refresh_token')
 
-    new_session = session_pool.update_session(refresh_token)
+    new_session = bp.session_pool.update_session(refresh_token)
 
     if not new_session:
         return INVALID_REFRESH_TOKEN.json()
