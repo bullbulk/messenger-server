@@ -9,10 +9,11 @@ from data.models import users
 from utils import match_required_params
 
 bp = CustomBlueprint(
-    'user_api',
+    'users_api',
     __name__,
-    url_prefix='/user'
+    url_prefix='/users'
 )
+
 
 @bp.route('/register', methods=['POST'])
 def register_user():

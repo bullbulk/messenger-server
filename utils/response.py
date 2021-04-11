@@ -18,7 +18,3 @@ class Response:
 
     def copy(self):
         return self.__class__(**self.dict)
-
-
-def generate_response(code, **kwargs):
-    return Response(code, **kwargs)
