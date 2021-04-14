@@ -21,7 +21,7 @@ def create_chat():
     data = request.json
     session = db_session.create_session()
 
-    if not match_required_params(data, ['member_ids', 'access_token']):
+    if not match_required_params(data, ['members_id', 'access_token']):
         return NOT_ENOUGH_ARGS.json()
     access_token = data.get('access_token')
 
@@ -29,7 +29,7 @@ def create_chat():
     if not is_token_valid:
         return INVALID_ACCESS_TOKEN.json()
 
-    ids: List = sorted(data.get('member_ids', []))
+    ids: List = sorted(data.get('members_id', []))
 
     if not ids:
         return INVALID_PARAMETER.json()
