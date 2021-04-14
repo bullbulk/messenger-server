@@ -6,6 +6,7 @@ from blueprints.custom_bp import CustomBlueprint
 from data import db_session
 from data.constants import *
 from data.models import users
+from data.models.dialogs import DialogModel
 from utils import match_required_params
 
 bp = CustomBlueprint(
@@ -90,3 +91,4 @@ def get_access_token():
     resp['access_token'] = new_session.access_token
     resp['refresh_token'] = new_session.refresh_token
     return resp.json()
+

@@ -1,7 +1,7 @@
 import datetime
 
 import sqlalchemy
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, String, JSON
 
 from data.db_session import SqlAlchemyBase
 
@@ -11,5 +11,5 @@ class DialogModel(SqlAlchemyBase):
 
     id = Column(sqlalchemy.Integer,
                 primary_key=True, autoincrement=True)
-    members_id = Column(String)
+    members_id = Column(JSON)
     created_date = Column(DateTime, default=datetime.datetime.now)

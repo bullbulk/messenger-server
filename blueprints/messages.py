@@ -15,15 +15,15 @@ bp = CustomBlueprint(
 )
 
 
-@bp.route('/message/send', methods=['POST'])
+@bp.route('/send', methods=['POST'])
 def send_message():
     data = request.json
 
-    if not match_required_params(list(data.keys()), ['text', 'access_token', 'addressee_id']):
+    if not match_required_params(list(data.keys()), ['text', 'access_token', 'dialog_id']):
         return NOT_ENOUGH_ARGS.json()
     text = data.get('text')
     access_token = data.get('access_token')
-    addressee_id = data.get('addressee_id')
+    dialog_id = data.get('dialog_id')
 
     is_token_valid = bp.session_pool.check_access_token(access_token)
     if not is_token_valid:
@@ -32,18 +32,17 @@ def send_message():
 
     message = messages.MessageModel()
     message.text = text
-    message.addressee_id = addressee_id
     message.author_id = data.get('author_id')
-    ids = sorted(list(map(int, [message.author_id, message.addressee_id])))
-    q = session.query(dialogs.DialogModel).filter(dialogs.DialogModel.members_id == json.dumps(ids))
+    q = session.query(dialogs.DialogModel).filter(dialogs.DialogModel.id == dialog_id)
     if not q.all():
         return NOT_FOUND.json()
     dialog = q.first()
 
     message.dialog_id = dialog.id
 
-    if addressee_id in bp.socketio_clients:
-        bp.socketio.emit('new_message', {'data': 'message'}, room=bp.socketio_clients[addressee_id], namespace='/')
+    for i in dialog.members_id:
+        if i in bp.socketio_clients:
+            bp.socketio.emit('new_message', {'data': 'message'}, room=bp.socketio_clients[i], namespace='/')
 
     session.add(message)
     session.commit()
