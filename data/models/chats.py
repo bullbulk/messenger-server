@@ -6,8 +6,8 @@ from sqlalchemy import Column, DateTime, String, JSON
 from data.db_session import SqlAlchemyBase
 
 
-class DialogModel(SqlAlchemyBase):
-    __tablename__ = 'dialogs'
+class ChatModel(SqlAlchemyBase):
+    __tablename__ = 'chats'
 
     id = Column(sqlalchemy.Integer,
                 primary_key=True, autoincrement=True)

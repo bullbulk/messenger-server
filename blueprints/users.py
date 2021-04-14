@@ -6,7 +6,6 @@ from blueprints.custom_bp import CustomBlueprint
 from data import db_session
 from data.constants import *
 from data.models import users
-from data.models.dialogs import DialogModel
 from utils import match_required_params
 
 bp = CustomBlueprint(

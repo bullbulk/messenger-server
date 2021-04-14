@@ -5,19 +5,19 @@ from flask import request
 from blueprints.custom_bp import CustomBlueprint
 from data import db_session
 from data.constants import *
-from data.models.dialogs import DialogModel
+from data.models.chats import ChatModel
 from data.models.messages import MessageModel
 from utils import match_required_params
 
 bp = CustomBlueprint(
-    'dialogs_api',
+    'chats_api',
     __name__,
-    url_prefix='/dialogs'
+    url_prefix='/chats'
 )
 
 
 @bp.route('/create', methods=['POST'])
-def create_dialog():
+def create_chat():
     data = request.json
     session = db_session.create_session()
 
@@ -34,19 +34,19 @@ def create_dialog():
     if not ids:
         return INVALID_PARAMETER.json()
 
-    if session.query(DialogModel).filter(DialogModel.members_id == ids).all():
+    if session.query(ChatModel).filter(ChatModel.members_id == ids).all():
         return ITEM_ALREADY_EXISTS.json()
 
-    dialog = DialogModel()
-    dialog.members_id = ids
+    chat = ChatModel()
+    chat.members_id = ids
 
-    session.add(dialog)
+    session.add(chat)
     session.commit()
     return SUCCESS.json()
 
 
 @bp.route('/all', methods=['POST'])
-def get_all_dialogs():
+def get_all_chats():
     data = request.json
 
     if not match_required_params(list(data.keys()), ['user_id', 'access_token']):
@@ -60,10 +60,10 @@ def get_all_dialogs():
         return INVALID_ACCESS_TOKEN.json()
 
     session = db_session.create_session()
-    dialogs = session.query(DialogModel).filter(DialogModel.members_id.contains(user_id))
+    chats = session.query(ChatModel).filter(ChatModel.members_id.contains(user_id))
 
     res = SUCCESS.copy()
-    res['data'] = {'dialogs': dialogs}
+    res['data'] = {'chats': chats}
     return SUCCESS.json()
 
 
@@ -71,12 +71,12 @@ def get_all_dialogs():
 def get_messages():
     data = request.json
 
-    if not match_required_params(list(data.keys()), ['dialog_id', 'access_token']):
+    if not match_required_params(list(data.keys()), ['chat_id', 'access_token']):
         return NOT_ENOUGH_ARGS.json()
 
     session = db_session.create_session()
     messages = session.query(MessageModel) \
-        .filter(MessageModel.dialog_id == data['dialog_id']) \
+        .filter(MessageModel.chat_id == data['chat_id']) \
         .with_entities(MessageModel.id, MessageModel.text).all()
     res = SUCCESS.copy()
     res['data'] = {'messages': messages}

@@ -1,7 +1,7 @@
 from app import app, socketio, session_pool, socketio_clients
-from blueprints import users, custom_bp, dialogs, messages
+from blueprints import users, custom_bp, chats, messages
 from data import db_session
-from data.models.dialogs import DialogModel
+from data.models.chats import ChatModel
 
 
 def share_global_variables():
@@ -14,7 +14,7 @@ def share_global_variables():
 
 def set_blueprints():
     app.register_blueprint(users.bp)
-    app.register_blueprint(dialogs.bp)
+    app.register_blueprint(chats.bp)
     app.register_blueprint(messages.bp)
 
 
@@ -22,7 +22,7 @@ def main():
     db_session.global_init("db/messenger.db")
 
     session = db_session.create_session()
-    a = session.query(DialogModel).filter(DialogModel.members_id.contains(1))
+    a = session.query(ChatModel).filter(ChatModel.members_id.contains(1))
     print(a.all())
 
     set_blueprints()
