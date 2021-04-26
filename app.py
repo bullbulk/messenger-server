@@ -3,6 +3,7 @@ import json
 import eventlet
 from flask import Flask, request
 from flask_socketio import SocketIO, emit
+from flask_cors import cross_origin
 
 from utils import SessionPool
 
@@ -23,6 +24,7 @@ def internal_error(e):
 
 @app.route('/')
 @app.route('/index')
+@cross_origin()
 def index():
     return 'There is no index page'
 

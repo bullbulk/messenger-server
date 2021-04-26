@@ -1,4 +1,5 @@
 from flask import request
+from flask_cors import cross_origin
 
 from blueprints.custom_bp import CustomBlueprint
 from data import db_session
@@ -14,6 +15,7 @@ bp = CustomBlueprint(
 
 
 @bp.route('/send', methods=['POST'])
+@cross_origin()
 def send_message():
     data = request.json
 

@@ -1,6 +1,7 @@
 from typing import List
 
 from flask import request
+from flask_cors import cross_origin
 
 from blueprints.custom_bp import CustomBlueprint
 from data import db_session
@@ -17,6 +18,7 @@ bp = CustomBlueprint(
 
 
 @bp.route('/create', methods=['POST'])
+@cross_origin()
 def create_chat():
     data = request.json
     session = db_session.create_session()
@@ -46,6 +48,7 @@ def create_chat():
 
 
 @bp.route('/all', methods=['POST'])
+@cross_origin()
 def get_all_chats():
     data = request.json
 
@@ -68,6 +71,7 @@ def get_all_chats():
 
 
 @bp.route('/messages', methods=['POST'])
+@cross_origin()
 def get_messages():
     data = request.json
 

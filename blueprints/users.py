@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from flask import request
+from flask_cors import cross_origin
 
 from blueprints.custom_bp import CustomBlueprint
 from data import db_session
@@ -16,6 +17,7 @@ bp = CustomBlueprint(
 
 
 @bp.route('/register', methods=['POST'])
+@cross_origin()
 def register_user():
     session = db_session.create_session()
 
@@ -45,6 +47,7 @@ def register_user():
 
 
 @bp.route('/login', methods=['POST'])
+@cross_origin()
 def login():
     data = request.json
 
@@ -73,6 +76,7 @@ def login():
 
 
 @bp.route('/update_session', methods=['POST'])
+@cross_origin()
 def get_access_token():
     data = request.json
 
